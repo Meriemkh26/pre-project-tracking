@@ -8,7 +8,6 @@ class AuthController {
         $this->userModel = new User($pdo);
     }
 
-    // Handle login
     public function login($email, $password) {
         $user = $this->userModel->findByEmail($email);
 
@@ -20,8 +19,6 @@ class AuthController {
             return ['success' => false, 'message' => 'Wrong password'];
         }
 
-        // Start session and store user info
-        session_start();
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_role'] = $user['role'];
         $_SESSION['user_name'] = $user['name'];
@@ -29,7 +26,6 @@ class AuthController {
         return ['success' => true, 'role' => $user['role']];
     }
 
-    // Handle register
     public function register($name, $email, $password, $role) {
         $existing = $this->userModel->findByEmail($email);
 
@@ -41,11 +37,10 @@ class AuthController {
         return ['success' => true, 'message' => 'Account created successfully'];
     }
 
-    // Handle logout
     public function logout() {
-        session_start();
         session_destroy();
-        header('Location: /login');
+        header('Location: /pre-project-tracking/backend/public/');
+        exit;
     }
 }
 ?>
