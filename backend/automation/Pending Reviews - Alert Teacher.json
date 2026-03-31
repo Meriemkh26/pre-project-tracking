@@ -1,0 +1,105 @@
+{
+  "name": "Pending Reviews - Alert Teacher",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ba970f47-4601-465e-91b6-dff1c6ccee99",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT p.id, p.title, p.submitted_at, \n       u.name as student_name,\n       t.email as teacher_email,\n       t.name as teacher_name\nFROM projects p\nJOIN users u ON p.student_id = u.id\nJOIN users t ON p.teacher_id = t.id\nWHERE p.status = 'pending'\nAND p.submitted_at < NOW() - INTERVAL 3 DAY",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        208,
+        0
+      ],
+      "id": "21d97d93-b14e-46ba-b3a1-305a79dbe0a1",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "mySql": {
+          "id": "62dnRXaK9unX3e5f",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "projectsann2026@gmail.com",
+        "toEmail": "={{ $json.teacher_email }}",
+        "html": "=<h2>Pending Projects Reminder</h2>\n<p>Dear {{ $json.teacher_name }},</p>\n<p>This is a friendly reminder that the following project has been waiting for your review for more than 3 days:</p>\n<ul>\n  <li><strong>Project:</strong> {{ $json.title }}</li>\n  <li><strong>Student:</strong> {{ $json.student_name }}</li>\n  <li><strong>Submitted:</strong> {{ $json.submitted_at }}</li>\n</ul>\n<p>Please login to PFE Tracker and review it as soon as possible.</p>\n<br>\n<p>PFE Tracker System</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4995a4d2-4aeb-4314-8afd-6dbe73ac4da0",
+      "name": "Send an Email",
+      "webhookId": "3bc441c7-1a6f-448b-bd59-ce3cc034371f",
+      "credentials": {
+        "smtp": {
+          "id": "oSTo2rZTqd2oNXik",
+          "name": "Gmail PFE"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d758fa40-9030-45b3-be20-3ca4386c6d14",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ceac14b175c30c357ad7e2256f3547cf49c75bcf72dc8c1d1035b11d176d7819"
+  },
+  "id": "2u4EZa7GXMsMGsft",
+  "tags": []
+}
