@@ -49,7 +49,7 @@ if (isset($_SESSION['user_id'])) {
                 <button type="submit" class="login-btn" id="login-btn">Sign in</button>
             </form>
 
-            <p class="login-footer">Don't have an account? <a href="#">Register</a></p>
+            <p class="login-footer">Don't have an account? <a href="/pre-project-tracking/backend/public/?route=register">Register</a></p>
         </div>
     </div>
 
