@@ -109,7 +109,7 @@ class AuthController {
 
     public function logout() {
         session_destroy();
-        header('Location: /pre-project-tracking/backend/public/?route=login');
+        header('Location: /pre-project-tracking/frontend/login.php');
         exit;
     }
 }
