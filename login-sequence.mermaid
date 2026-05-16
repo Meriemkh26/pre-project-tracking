@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Person as "User"
+    participant Front as "Browser"
+    participant Back as "PHP Backend"
+    participant DB as "MySQL"
+
+    Person->>Front: Enter email & password
+    Front->>Back: POST /index.php?route=login
+    Back->>DB: SELECT * FROM users WHERE email=?
+    DB->>Back: user row
+    Back->>Back: verify password (hash check)
+    Back->>Front: redirect to dashboard
+    Front->>Person: Dashboard page

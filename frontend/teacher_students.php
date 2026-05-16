@@ -29,11 +29,6 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body>
 
-  <div class="top-roles">
-    <button class="top-role">Student</button>
-    <button class="top-role active-teacher">Teacher</button>
-    <button class="top-role">Admin</button>
-  </div>
 
   <div class="navbar teacher-nav">
     <div class="nav-left">

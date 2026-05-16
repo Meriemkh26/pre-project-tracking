@@ -65,12 +65,6 @@ if ($project) {
 
 <body>
 
-  <div class="top-roles">
-    <button class="top-role active-student">Student</button>
-    <button class="top-role">Teacher</button>
-    <button class="top-role">Admin</button>
-  </div>
-
   <div class="navbar student-nav">
     <div class="nav-left">
       <button class="back-btn" onclick="history.back()" data-tooltip="Go back">
@@ -143,16 +137,14 @@ if ($project) {
 
     <div class="big-card">
 
-      <form method="POST" enctype="multipart/form-data">
-        <div style="margin-top:12px; text-align:center;">
-          <i class="fa-solid fa-cloud-arrow-up" style="font-size:40px; color:#7c6fcd;"></i>
+      <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
           <h3>Upload Files</h3>
-          <p class="light-text">Select a file below</p>
-          <input type="file" name="file" id="fileInput" style="margin-top:10px;">
-          <button type="submit" class="login-btn" style="margin-top:10px; width:auto; padding: 10px 30px;">
-            <i class="fa-solid fa-upload" style="margin-right:8px;"></i> Upload
-          </button>
+          <p>Click to browse and select a file</p>
+          <input type="file" name="file" id="fileInput" style="display:none;">
         </div>
+        
       </form>
 
       <div class="file-list" style="margin-top:24px;">
@@ -181,11 +173,14 @@ if ($project) {
 
   </div>
 
-  <script src="script.js"></script>
   <script>
-  // Override initFileUpload to do nothing on this page
-  // PHP handles the upload instead
-  function initFileUpload() {}
-</script>
+    function initFileUpload() {}
+    
+    document.getElementById('fileInput').addEventListener('change', function() {
+      if (this.files.length > 0) {
+        document.getElementById('uploadForm').submit();
+      }
+    });
+  </script>
 </body>
 </html>

@@ -1,0 +1,35 @@
+graph TD
+    subgraph Client
+        A[🌐 Browser\nHTML + CSS + JS]
+    end
+
+    subgraph Server - XAMPP
+        B[index.php\nEntry Point]
+        C[Router\nrouter.php]
+        D[AuthController\nAuthController.php]
+        E[User Model\nUser.php]
+        F[Notifier\nNotifier.php]
+        G[DB Class\ndatabase.php]
+    end
+
+    subgraph Database
+        H[(🗄️ MySQL)]
+    end
+
+    subgraph Automation
+        I[⚙️ n8n\n127.0.0.1:5678]
+    end
+
+    A -->|HTTP Request| B
+    B --> C
+    C --> D
+    D --> E
+    D --> F
+    E --> G
+    G --> H
+    F -->|Webhook HTTP POST| I
+    subgraph Email
+        J[📧 Email Service]
+    end
+
+    I --> J

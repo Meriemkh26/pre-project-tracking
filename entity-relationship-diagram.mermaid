@@ -1,0 +1,48 @@
+erDiagram
+    USERS {
+        int id PK
+        string name
+        string email
+        string password
+        string role
+        bool verified
+    }
+
+    PROJECTS {
+        int id PK
+        string title
+        string description
+        string status
+        int student_id FK
+        int teacher_id FK
+    }
+
+    FEEDBACK {
+        int id PK
+        int project_id FK
+        int teacher_id FK
+        string comment
+        datetime created_at
+    }
+
+    FILES {
+        int id PK
+        int project_id FK
+        string filename
+        datetime uploaded_at
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        int user_id FK
+        string message
+        bool is_read
+        datetime created_at
+    }
+
+    USERS ||--o{ PROJECTS : "is student in"
+    USERS ||--o{ PROJECTS : "is teacher in"
+    USERS ||--o{ NOTIFICATIONS : "receives"
+    PROJECTS ||--o{ FEEDBACK : "has"
+    PROJECTS ||--o{ FILES : "has"
+    USERS ||--o{ FEEDBACK : "writes"

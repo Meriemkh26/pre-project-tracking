@@ -17,6 +17,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
     header('Location: admin_users.php?success=User deleted successfully');
     exit;
 }
+// Handle add user
+  if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
+      $newName = trim($_POST['new_name'] ?? '');
+      $newEmail = trim($_POST['new_email'] ?? '');
+      $newPassword = $_POST['new_password'] ?? '';
+      $newRole = $_POST['new_role'] ?? 'student';
+
+      if ($newName && $newEmail && $newPassword) {
+          $hashed = password_hash($newPassword, PASSWORD_BCRYPT);
+          $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)");
+          $stmt->execute([$newName, $newEmail, $hashed, $newRole]);
+          header('Location: admin_users.php?success=User added successfully');
+          exit;
+      }
+  }
 
 $successMsg = $_GET['success'] ?? '';
 
@@ -38,12 +53,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body>
 
-  <div class="top-roles">
-    <button class="top-role">Student</button>
-    <button class="top-role">Teacher</button>
-    <button class="top-role active-admin">Admin</button>
-  </div>
-
+ 
   <div class="navbar admin-nav">
     <div class="nav-left">
       <div class="logo-text">
@@ -98,6 +108,39 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <div class="container">
 
     <h3 class="section-title">All Users</h3>
+    <!-- ADD USER FORM -->
+    <div class="big-card" style="margin-bottom:24px;">
+      <h4 style="margin-bottom:16px;"><i class="fa-solid fa-user-plus" style="margin-right:8px; color:#7c6fcd;"></i>Add New User</h4>
+      <form method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input class="form-input" type="text" name="new_name" placeholder="Full Name" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input class="form-input" type="email" name="new_email" placeholder="Email" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Password</label>
+            <input class="form-input" type="password" name="new_password" placeholder="Password" required>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select name="new_role" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-family:Poppins, sans-serif; font-size:14px;">
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" name="add_user" class="login-btn" style="width:auto; padding:10px 30px ;display:block; margin: 16px auto 0;">
+          <i class="fa-solid fa-plus" style="margin-right:8px;"></i>Add User
+        </button>
+      </form>
+    </div>
 
     <?php if ($successMsg): ?>
       <div style="background:#e6f4ea; color:#2d6a4f; padding:10px 16px; border-radius:8px; margin-bottom:16px;">

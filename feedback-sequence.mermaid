@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Person as "Teacher"
+    participant Front as "Browser"
+    participant Back as "PHP Backend"
+    participant DB as "MySQL"
+
+    Person->>Front: Write & submit feedback
+    Front->>Back: POST /index.php?route=feedback
+    Back->>DB: INSERT INTO feedback
+    DB->>Back: success
+    Back->>Back: trigger Notifier (n8n webhook)
+    Back->>Front: redirect to projects
+    Front->>Person: Feedback saved

@@ -4,7 +4,60 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'student') {
     header('Location: /pre-project-tracking/frontend/login.php');
     exit;
 }
+
+require_once '../backend/config/database.php';
+
+$userId = $_SESSION['user_id'];
 $userName = $_SESSION['user_name'];
+
+// Handle profile update
+$successMsg = '';
+$errorMsg = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $currentPassword = $_POST['current_password'] ?? '';
+    $newPassword = $_POST['new_password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+
+    if (!$name || !$email) {
+        $errorMsg = 'Name and email are required.';
+    } else {
+        // Check if changing password
+        if (!empty($newPassword)) {
+            $stmt = $pdo->prepare("SELECT password FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!password_verify($currentPassword, $user['password'])) {
+                $errorMsg = 'Current password is incorrect.';
+            } elseif ($newPassword !== $confirmPassword) {
+                $errorMsg = 'New passwords do not match.';
+            } elseif (strlen($newPassword) < 6) {
+                $errorMsg = 'New password must be at least 6 characters.';
+            } else {
+                $hashed = password_hash($newPassword, PASSWORD_BCRYPT);
+                $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, password = ? WHERE id = ?");
+                $stmt->execute([$name, $email, $hashed, $userId]);
+                $_SESSION['user_name'] = $name;
+                $userName = $name;
+                $successMsg = 'Profile updated successfully!';
+            }
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $userId]);
+            $_SESSION['user_name'] = $name;
+            $userName = $name;
+            $successMsg = 'Profile updated successfully!';
+        }
+    }
+}
+
+// Get current user data
+$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt->execute([$userId]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,83 +66,56 @@ $userName = $_SESSION['user_name'];
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Profile - PFE Tracker</title>
-
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-
-  <!-- TOP ROLE SWITCH -->
-  <div class="top-roles">
-    <button class="top-role active-student">Student</button>
-    <button class="top-role">Teacher</button>
-    <button class="top-role">Admin</button>
-  </div>
-
-  <!-- NAVBAR -->
   <div class="navbar student-nav">
-
     <div class="nav-left">
-
-      <!-- BACK BUTTON -->
       <button class="back-btn" onclick="history.back()" data-tooltip="Go back">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
-
       <div class="logo-text">
         <img src="logo.png" alt="Logo">
         <span>PFE Tracker</span>
       </div>
-
     </div>
 
     <div class="menu">
-      <a href="student_dashboard.html">Dashboard</a>
-      <a href="student_myproject.html">My Project</a>
-      <a href="student_files.html">Files</a>
-      <a href="student_feedback.html">Feedback</a>
+      <a href="student_dashboard.php">Dashboard</a>
+      <a href="student_myproject.php">My Project</a>
+      <a href="student_files.php">Files</a>
+      <a href="student_feedback.php">Feedback</a>
     </div>
 
     <div class="nav-right">
-
-      <!-- NOTIFICATION -->
       <div style="position:relative;">
         <button class="notif-btn" data-tooltip="Notifications">
           <i class="fa-regular fa-bell"></i>
           <span class="notif-badge"></span>
         </button>
-
         <div class="notif-panel">
           <h4>Notifications</h4>
           <div class="notif-item">
             <div class="notif-dot"></div>
             <div>
-              <p>Dr. Ahmed left new feedback</p>
-              <small>2 hours ago</small>
-            </div>
-          </div>
-          <div class="notif-item">
-            <div class="notif-dot"></div>
-            <div>
-              <p>Your project was approved</p>
-              <small>Yesterday</small>
+              <p>Notifications will appear here</p>
+              <small>Stay tuned</small>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- USER -->
       <div class="user-menu" data-tooltip="Account">
         <div class="user-trigger">
           <div class="avatar"></div>
-          <span class="user-name-text"></span>
+          <span class="user-name-text"><?= htmlspecialchars($userName) ?></span>
           <span class="dropdown-arrow"><i class="fa-solid fa-chevron-down"></i></span>
         </div>
-
         <div class="dropdown">
-          <div class="dropdown-item" onclick="window.location.href='student_profile.html'">
+          <div class="dropdown-item" onclick="window.location.href='student_profile.php'">
             <i class="fa-regular fa-user"></i> Profile
           </div>
           <div class="dropdown-item" onclick="logout()">
@@ -97,99 +123,98 @@ $userName = $_SESSION['user_name'];
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- CONTENT -->
   <div class="container">
 
     <h3 class="section-title">My Profile</h3>
 
+    <?php if ($successMsg): ?>
+      <div style="background:#e6f4ea; color:#2d6a4f; padding:10px 16px; border-radius:8px; margin-bottom:16px;">
+        ✅ <?= htmlspecialchars($successMsg) ?>
+      </div>
+    <?php endif; ?>
+
+    <?php if ($errorMsg): ?>
+      <div style="background:#fde8e8; color:#c0392b; padding:10px 16px; border-radius:8px; margin-bottom:16px;">
+        ❌ <?= htmlspecialchars($errorMsg) ?>
+      </div>
+    <?php endif; ?>
+
     <div class="big-card">
 
-      <!-- PROFILE HEADER -->
       <div class="profile-header">
-        <div class="profile-avatar" id="profileAvatar">??</div>
+        <div class="profile-avatar" id="profileAvatar">
+          <?= strtoupper(substr($user['name'], 0, 2)) ?>
+        </div>
         <div class="profile-info">
-          <h3 id="profileName">Loading...</h3>
-          <p id="profileRole">Student</p>
-          <p id="profileEmail" style="color:#B488BF; font-size:13px;"></p>
+          <h3><?= htmlspecialchars($user['name']) ?></h3>
+          <p>Student</p>
+          <p style="color:#B488BF; font-size:13px;"><?= htmlspecialchars($user['email']) ?></p>
         </div>
       </div>
 
       <hr class="form-divider">
 
-      <!-- FORM -->
-      <div class="profile-form">
+      <form method="POST">
+        <div class="profile-form">
 
-        <p class="form-section-title">Personal Information</p>
+          <p class="form-section-title">Personal Information</p>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="editName">Full Name</label>
-            <input class="form-input" type="text" id="editName" placeholder="Full Name">
-          </div>
-          <div class="form-group">
-            <label for="editEmail">Email</label>
-            <input class="form-input" type="email" id="editEmail" placeholder="Email address">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="editStudentId">Student ID</label>
-          <input class="form-input" type="text" id="editStudentId" placeholder="e.g. 2024001">
-        </div>
-
-        <hr class="form-divider">
-        <p class="form-section-title">Change Password</p>
-
-        <div class="form-group">
-          <label>Current Password</label>
-          <div class="form-password">
-            <input class="form-input" type="password" id="currentPassword" placeholder="Current password">
-            <i class="fa-regular fa-eye toggle-eye" onclick="toggleEye('currentPassword', this)"></i>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>New Password</label>
-            <div class="form-password">
-              <input class="form-input" type="password" id="newPassword" placeholder="New password">
-              <i class="fa-regular fa-eye toggle-eye" onclick="toggleEye('newPassword', this)"></i>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input class="form-input" type="text" name="name"
+                value="<?= htmlspecialchars($user['name']) ?>" placeholder="Full Name" required>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input class="form-input" type="email" name="email"
+                value="<?= htmlspecialchars($user['email']) ?>" placeholder="Email address" required>
             </div>
           </div>
+
+          <hr class="form-divider">
+          <p class="form-section-title">Change Password</p>
+
           <div class="form-group">
-            <label>Confirm Password</label>
+            <label>Current Password</label>
             <div class="form-password">
-              <input class="form-input" type="password" id="confirmNewPassword" placeholder="Confirm new password">
-              <i class="fa-regular fa-eye toggle-eye" onclick="toggleEye('confirmNewPassword', this)"></i>
+              <input class="form-input" type="password" name="current_password"
+                id="currentPassword" placeholder="Current password">
+              <i class="fa-regular fa-eye toggle-eye" onclick="toggleEye('currentPassword', this)"></i>
             </div>
           </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>New Password</label>
+              <div class="form-password">
+                <input class="form-input" type="password" name="new_password"
+                  id="newPassword" placeholder="New password">
+                <i class="fa-regular fa-eye toggle-eye" onclick="toggleEye('newPassword', this)"></i>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirm Password</label>
+              <div class="form-password">
+                <input class="form-input" type="password" name="confirm_password"
+                  id="confirmNewPassword" placeholder="Confirm new password">
+                <i class="fa-regular fa-eye toggle-eye" onclick="toggleEye('confirmNewPassword', this)"></i>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="save-btn">
+            <i class="fa-solid fa-floppy-disk" style="margin-right:8px;"></i>Save Changes
+          </button>
+
         </div>
-
-        <button class="save-btn" onclick="saveProfile()">
-          <i class="fa-solid fa-floppy-disk" style="margin-right:8px;"></i>Save Changes
-        </button>
-
-        <!-- SUCCESS MESSAGE -->
-        <div class="toast success-toast" id="successToast">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>Profile updated successfully!</span>
-        </div>
-
-        <!-- ERROR MESSAGE -->
-        <div class="toast error-toast" id="errorToast">
-          <i class="fa-solid fa-circle-xmark"></i>
-          <span id="errorMessage">An error occurred</span>
-        </div>
-
-      </div>
+      </form>
     </div>
   </div>
 
   <script src="script.js"></script>
-
 </body>
 </html>

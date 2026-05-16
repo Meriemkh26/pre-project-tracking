@@ -29,11 +29,7 @@ $project = $stmt->fetch(PDO::FETCH_ASSOC);
 
 <body>
 
-  <div class="top-roles">
-    <button class="top-role active-student">Student</button>
-    <button class="top-role">Teacher</button>
-    <button class="top-role">Admin</button>
-  </div>
+  
 
   <div class="navbar student-nav">
     <div class="nav-left">

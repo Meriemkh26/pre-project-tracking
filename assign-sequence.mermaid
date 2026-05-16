@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Person as "Admin"
+    participant Front as "Browser"
+    participant Back as "PHP Backend"
+    participant DB as "MySQL"
+
+    Person->>Front: Select project & assign teacher
+    Front->>Back: POST /index.php?route=assign
+    Back->>DB: UPDATE projects SET teacher_id=?
+    DB->>Back: success
+    Back->>Back: trigger Notifier (n8n webhook)
+    Back->>Front: redirect to dashboard
+    Front->>Person: Assignment confirmed

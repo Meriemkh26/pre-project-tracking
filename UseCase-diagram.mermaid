@@ -1,0 +1,53 @@
+%%{init: {'theme': 'default'}}%%
+graph LR
+    Student([👤 Student])
+    Teacher([👤 Teacher])
+    Admin([👤 Admin])
+
+    subgraph Student Actions
+        UC1[Login]
+        UC2[Register]
+        UC3[Verify Account]
+        UC4[View Profile]
+        UC5[Edit Profile]
+        UC6[Submit Project]
+        UC7[Upload Files]
+        UC8[View Feedback]
+        UC9[View My Project]
+    end
+
+    subgraph Teacher Actions
+        UC10[View Students]
+        UC11[View Student Projects]
+        UC12[Write Feedback / Report]
+        UC13[View Profile]
+    end
+
+    subgraph Admin Actions
+        UC14[Manage Users]
+        UC15[Assign Teacher to Project]
+        UC16[View All Projects]
+        UC17[View Admin Dashboard]
+    end
+
+    Student --> UC1
+    Student --> UC2
+    Student --> UC3
+    Student --> UC4
+    Student --> UC5
+    Student --> UC6
+    Student --> UC7
+    Student --> UC8
+    Student --> UC9
+
+    Teacher --> UC1
+    Teacher --> UC10
+    Teacher --> UC11
+    Teacher --> UC12
+    Teacher --> UC13
+
+    Admin --> UC1
+    Admin --> UC14
+    Admin --> UC15
+    Admin --> UC16
+    Admin --> UC17

@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Person as "Student"
+    participant Front as "Browser"
+    participant Back as "PHP Backend"
+    participant DB as "MySQL"
+
+    Person->>Front: Fill & submit project form
+    Front->>Back: POST /index.php?route=submit
+    Back->>DB: INSERT INTO projects
+    DB->>Back: project_id
+    Back->>Back: trigger Notifier (n8n webhook)
+    Back->>Front: redirect to dashboard
+    Front->>Person: Success message

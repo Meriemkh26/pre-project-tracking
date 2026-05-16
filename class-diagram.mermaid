@@ -1,0 +1,51 @@
+classDiagram
+    class AuthController {
+        -user: User
+        -db: DB
+        -notifier: Notifier
+        +login(email: string, password: string): bool
+        +register(data: array): bool
+        +verify(code: string): bool
+        +logout(): void
+    }
+
+    class User {
+        -id: int
+        -email: string
+        -password: string
+        -role: string
+        -name: string
+        -verified: bool
+        +findByEmail(email: string): User
+        +create(data: array): int
+        +update(data: array): bool
+        +delete(id: int): bool
+    }
+
+    class Notifier {
+        +projectSubmitted(data: array): void
+        +sendEmail(to: string, message: string): void
+        +triggerWebhook(url: string, payload: array): void
+    }
+
+    class DB {
+        +query(sql: string): array
+        +select(table: string, where: array): array
+        +insert(table: string, data: array): int
+        +update(table: string, data: array, where: array): bool
+        +delete(table: string, where: array): bool
+    }
+
+    class Router {
+        +get(path: string, handler: array): void
+        +post(path: string, handler: array): void
+        +dispatch(): void
+    }
+
+    %% Relationships
+    AuthController --> User : uses
+    AuthController --> DB : queries
+    AuthController --> Notifier : notifies
+    Notifier --> DB : reads data
+    User --> DB : uses
+    Router --> AuthController : routes to

@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant Person as "Student"
+    participant Front as "Browser"
+    participant Back as "PHP Backend"
+    participant DB as "MySQL"
+
+    Person->>Front: Select & upload file
+    Front->>Back: POST /index.php?route=upload
+    Back->>Back: validate file type & size
+    Back->>DB: INSERT INTO files
+    DB->>Back: file_id
+    Back->>Front: upload success
+    Front->>Person: File uploaded message
