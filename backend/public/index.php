@@ -43,27 +43,6 @@ switch ($route) {
         header('Location: /pre-project-tracking/frontend/login.php');
         exit;
 
-    case '/register':
-    case 'register':
-        if ($method === 'POST') {
-            $name = trim($_POST['name'] ?? '');
-            $email = trim($_POST['email'] ?? '');
-            $password = trim($_POST['password'] ?? '');
-            $role = trim($_POST['role'] ?? 'student');
-
-            $result = $auth->register($name, $email, $password, $role);
-
-            if ($result['success']) {
-                header('Location: /pre-project-tracking/frontend/login.php?success=Account created! You can now log in.');
-                exit;
-            } else {
-                header('Location: /pre-project-tracking/frontend/register.php?error=' . urlencode($result['message']));
-                exit;
-            }
-        }
-        header('Location: /pre-project-tracking/frontend/register.php');
-        exit;
-
     case '/logout':
     case 'logout':
         $auth->logout();

@@ -67,10 +67,6 @@ $error = $_GET['error'] ?? '';
       </button>
     </form>
 
-    <p class="register-text">
-      Don't have an account? <a href="register.php">Create one here</a>
-    </p>
-
   </div>
 
   <!-- ERROR TOAST -->
