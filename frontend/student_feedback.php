@@ -22,6 +22,17 @@ if ($project) {
     $stmt->execute([$project['id']]);
     $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+// Handle student reply
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_reply'])) {
+    $feedbackId = intval($_POST['feedback_id'] ?? 0);
+    $reply = trim($_POST['reply'] ?? '');
+    if ($feedbackId && $reply) {
+        $stmt = $pdo->prepare("UPDATE feedback SET student_reply = ? WHERE id = ? AND project_id = ?");
+        $stmt->execute([$reply, $feedbackId, $project['id']]);
+        header('Location: student_feedback.php');
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -114,6 +125,24 @@ if ($project) {
             </span>
           </div>
           <p style="color:#555; line-height:1.7;"><?= htmlspecialchars($fb['comment']) ?></p>
+
+          <?php if ($fb['student_reply']): ?>
+            <div style="background:#f5f0fb; border-left:3px solid #7c6fcd; padding:10px 14px; border-radius:6px; margin-top:12px;">
+              <p style="font-size:13px; font-weight:600; color:#7c6fcd; margin-bottom:4px;">Your reply:</p>
+              <p style="color:#555; font-size:14px;"><?= htmlspecialchars($fb['student_reply']) ?></p>
+            </div>
+          <?php else: ?>
+            <form method="POST" style="margin-top:12px;">
+              <input type="hidden" name="feedback_id" value="<?= $fb['id'] ?>">
+              <textarea name="reply" rows="2"
+                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-family:Poppins, sans-serif; font-size:14px; resize:vertical;"
+                placeholder="Reply to this feedback..."></textarea>
+              <button type="submit" name="submit_reply"
+                style="margin-top:8px; background:linear-gradient(135deg, #7c6fcd, #B488BF); color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:Poppins, sans-serif; font-size:13px;">
+                <i class="fa-solid fa-reply" style="margin-right:6px;"></i>Send Reply
+              </button>
+            </form>
+          <?php endif; ?>
         </div>
       <?php endforeach; ?>
     <?php endif; ?>

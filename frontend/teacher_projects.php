@@ -10,7 +10,6 @@ require_once '../backend/config/database.php';
 $teacherId = $_SESSION['user_id'];
 $userName = $_SESSION['user_name'];
 
-// Handle accept/reject + feedback submission
 $successMsg = '';
 $errorMsg = '';
 
@@ -20,11 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $comment = trim($_POST['comment'] ?? '');
 
     if ($projectId && in_array($action, ['accepted', 'rejected'])) {
-        // Update project status
         $stmt = $pdo->prepare("UPDATE projects SET status = ? WHERE id = ? AND teacher_id = ?");
         $stmt->execute([$action, $projectId, $teacherId]);
 
-        // Save feedback if provided
         if (!empty($comment)) {
             $stmt = $pdo->prepare("INSERT INTO feedback (project_id, teacher_id, comment, created_at) VALUES (?, ?, ?, NOW())");
             $stmt->execute([$projectId, $teacherId, $comment]);
@@ -34,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get all projects assigned to this teacher
 $stmt = $pdo->prepare("SELECT p.*, u.name as student_name FROM projects p JOIN users u ON p.student_id = u.id WHERE p.teacher_id = ? ORDER BY p.submitted_at DESC");
 $stmt->execute([$teacherId]);
 $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -52,7 +48,6 @@ $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body>
-
 
   <div class="navbar teacher-nav">
     <div class="nav-left">
@@ -137,12 +132,45 @@ $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
           <p style="color:#555; margin-bottom:16px;"><?= htmlspecialchars($project['description']) ?></p>
 
+          <!-- CONVERSATION HISTORY -->
+          <?php
+            $stmt2 = $pdo->prepare("SELECT * FROM feedback WHERE project_id = ? ORDER BY created_at ASC");
+            $stmt2->execute([$project['id']]);
+            $conversations = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+          ?>
+
+          <?php if (!empty($conversations)): ?>
+            <div style="margin-bottom:16px;">
+              <p style="font-weight:600; margin-bottom:10px; color:#555;">
+                <i class="fa-solid fa-comments" style="margin-right:6px; color:#7c6fcd;"></i>
+                Conversation History
+              </p>
+              <?php foreach ($conversations as $conv): ?>
+                <div style="background:#f9f9f9; border-left:3px solid #e0a0c0; padding:10px 14px; border-radius:6px; margin-bottom:8px;">
+                  <p style="font-size:12px; font-weight:600; color:#e0a0c0; margin-bottom:4px;">
+                    <i class="fa-regular fa-user" style="margin-right:4px;"></i> You — <?= date('M d, Y', strtotime($conv['created_at'])) ?>
+                  </p>
+                  <p style="color:#555; font-size:14px;"><?= htmlspecialchars($conv['comment']) ?></p>
+                </div>
+                <?php if ($conv['student_reply']): ?>
+                  <div style="background:#f5f0fb; border-left:3px solid #7c6fcd; padding:10px 14px; border-radius:6px; margin-bottom:8px; margin-left:20px;">
+                    <p style="font-size:12px; font-weight:600; color:#7c6fcd; margin-bottom:4px;">
+                      <i class="fa-regular fa-user" style="margin-right:4px;"></i> <?= htmlspecialchars($project['student_name']) ?> (reply)
+                    </p>
+                    <p style="color:#555; font-size:14px;"><?= htmlspecialchars($conv['student_reply']) ?></p>
+                  </div>
+                <?php endif; ?>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+
+          <!-- NEW FEEDBACK FORM -->
           <form method="POST">
             <input type="hidden" name="project_id" value="<?= $project['id'] ?>">
             <div style="margin-bottom:12px;">
               <label style="font-weight:500; display:block; margin-bottom:6px;">
                 <i class="fa-regular fa-comment" style="margin-right:6px; color:#7c6fcd;"></i>
-                Leave Feedback (optional)
+                Leave Feedback
               </label>
               <textarea name="comment" rows="3"
                 style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-family:Poppins, sans-serif; font-size:14px; resize:vertical;"
