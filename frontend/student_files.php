@@ -31,15 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file']) && $_FILES['
 
         $filepath = $uploadDir . time() . '_' . $filename;
 
-        if ($file['error'] !== 0) {
-    $uploadError = 'Upload error code: ' . $file['error'];
-} elseif (move_uploaded_file($file['tmp_name'], $filepath)) {
-    $stmt = $pdo->prepare("INSERT INTO files (project_id, filename, filepath, uploaded_at) VALUES (?, ?, ?, NOW())");
-    $stmt->execute([$project['id'], $filename, $filepath]);
-    $uploadSuccess = 'File uploaded successfully!';
-} else {
-    $uploadError = 'Failed to move file. tmp: ' . $file['tmp_name'] . ' | dest: ' . $filepath;
-}
+        $allowedExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'txt'];
+        $fileExtension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!in_array($fileExtension, $allowedExtensions)) {
+            $uploadError = 'File type not allowed. Only PDF, DOC, DOCX, images and TXT are accepted.';
+        } elseif (move_uploaded_file($file['tmp_name'], $filepath)) {
+            $stmt = $pdo->prepare("INSERT INTO files (project_id, filename, filepath, uploaded_at) VALUES (?, ?, ?, NOW())");
+            $stmt->execute([$project['id'], $filename, $filepath]);
+            $uploadSuccess = 'File uploaded successfully!';
+        } else {
+            $uploadError = 'Failed to upload file.';
+        }
     }
 }
 
@@ -144,7 +147,6 @@ if ($project) {
           <p>Click to browse and select a file</p>
           <input type="file" name="file" id="fileInput" style="display:none;">
         </div>
-        
       </form>
 
       <div class="file-list" style="margin-top:24px;">
@@ -173,6 +175,7 @@ if ($project) {
 
   </div>
 
+  <script src="script.js"></script>
   <script>
     function initFileUpload() {}
     
